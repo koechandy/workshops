@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1569829514098.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "384895154",
+    "id" : "846FF9E5",
+    "lastKnownWriteTime" : 1569830362,
+    "last_content_update" : 1569830362,
+    "path" : "F:/International Cancer Institute-ICI/Cluster Randomized Trials/CRT.R",
+    "project_path" : "CRT.R",
+    "properties" : {
+        "cursorPosition" : "8,43",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

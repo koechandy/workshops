@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1576259314163.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3560395589",
+    "id" : "9B111A6",
+    "lastKnownWriteTime" : 1575438130,
+    "last_content_update" : 1575438130,
+    "path" : "F:/Mathematical modelling of infectious Diseases/SIR.R",
+    "project_path" : "SIR.R",
+    "properties" : {
+        "cursorPosition" : "73,0",
+        "scrollLine" : "55"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,834 @@
+
+> date()
+[1] "Sat Oct 19 17:54:32 2019"
+
+> system("hostname", intern=T)
+[1] "LAPTOP-13353D28"
+
+> library(survival)
+
+> library(mexhaz)
+
+> library(splines)
+
+> sessionInfo()
+R version 3.5.1 (2018-07-02)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows >= 8 x64 (build 9200)
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=French_France.1252  LC_CTYPE=French_France.1252    LC_MONETARY=French_France.1252 LC_NUMERIC=C                  
+[5] LC_TIME=French_France.1252    
+
+attached base packages:
+[1] splines   stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] statmod_1.4.30  mexhaz_1.6      survival_2.42-6
+
+loaded via a namespace (and not attached):
+[1] MASS_7.3-50       compiler_3.5.1    Matrix_1.2-14     tools_3.5.1       yaml_2.2.0        grid_3.5.1        numDeriv_2016.8-1
+[8] lattice_0.20-35  
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 4.1 = .... [TRUNCATED] 
+
+> stage="St4"
+
+> rm(temp)
+
+> temp=datacolon.v2[datacolon.v2$agediag>=30&datacolon.v2$agediag<=90&datacolon.v2$stage==stage,]
+
+> temp$agegrp <- rep("[30;45[")
+
+> temp$agegrp <- ifelse(temp$agediag>=45 & temp$agediag<55, "[45;55[", temp$agegrp)
+
+> temp$agegrp <- ifelse(temp$agediag>=55 & temp$agediag<65, "[55;65[", temp$agegrp)
+
+> temp$agegrp <- ifelse(temp$agediag>=65 & temp$agediag<75, "[65;75[", temp$agegrp)
+
+> temp$agegrp <- ifelse(temp$agediag>=75 & temp$agediag<=90, "[75;90]", temp$agegrp)
+
+> # check the code:
+> tapply(temp$agediag, temp$agegrp, range) 
+$`[30;45[`
+[1] 30.37919 44.98837
+
+$`[45;55[`
+[1] 45.02670 54.96235
+
+$`[55;65[`
+[1] 55.11294 64.83504
+
+$`[65;75[`
+[1] 65.00753 74.97878
+
+$`[75;90]`
+[1] 75.00343 89.73579
+
+
+> temp$Iagegrp3045 <- ifelse(temp$agegrp=="[30;45[",1,0) 
+
+> temp$Iagegrp4555 <- ifelse(temp$agegrp=="[45;55[",1,0) 
+
+> temp$Iagegrp5565 <- ifelse(temp$agegrp=="[55;65[",1,0) 
+
+> temp$Iagegrp6575 <- ifelse(temp$agegrp=="[65;75[",1,0) 
+
+> temp$Iagegrp7590 <- ifelse(temp$agegrp=="[75;90]",1,0) 
+
+> # [65;75[ is the reference
+> #
+> model41=mexhaz(Surv(time=fu,event=dead)~Iagegrp3045+Iagegrp4555+Iagegrp5565+Iagegrp7590 , 
++                data=te .... [TRUNCATED] 
+ Eval    LogLik Time
+    0 -1417.509 0.01
+Param
+[1] -1 -1 -1 -1 -1  0  0  0  0
+
+iteration = 0
+Step:
+[1] 0 0 0 0 0 0 0 0 0
+Parameter:
+[1] -1 -1 -1 -1 -1  0  0  0  0
+Function Value
+[1] 1417.509
+Gradient:
+[1] -541.762123 -280.319658  -66.130256  -10.816307    2.274532  -20.286723  -68.080558 -111.926236 -160.931672
+
+ Eval    LogLik Time
+  100 -747.4046 0.42
+Param
+[1]  0.7500 -0.8383 -1.5778 -2.8100 -2.7366 -0.3713 -0.0553 -0.1294  0.3026
+
+ Eval    LogLik Time
+  200 -742.2475 0.82
+Param
+[1]  0.7350 -0.8723 -0.9448 -3.5581 -4.2797 -0.2740 -0.1147 -0.1863  0.2728
+
+iteration = 36
+Parameter:
+[1]  0.7320680 -0.8462974 -1.0852494 -3.0709409 -5.0506613 -0.3188374 -0.1312446 -0.1843528  0.2710759
+Function Value
+[1] 742.093
+Gradient:
+[1] -1.483613e-04 -1.195986e-04 -2.367495e-05 -1.865818e-05  1.577902e-05 -7.707968e-05  5.911716e-06 -1.409717e-04 -9.447376e-05
+
+Gradient relatif proche de zéro.
+L'itération courante est probablement la solution.
+
+ Eval   LogLik Time
+  300 -742.093  1.2
+Param
+[1]  0.7321 -0.8463 -1.0852 -3.0709 -5.0505 -0.3188 -0.1312 -0.1844  0.2711
+
+Computation of the Hessian
+
+Data
+ Name N.Obs.Tot N.Obs N.Events N.Clust
+ temp       880   880      846       1
+
+Details
+ Iter Eval   Base Nb.Leg Nb.Aghq Optim Method Code   LogLik Total.Time
+   36  303 exp.bs     20      10   nlm    ---    1 -742.093       1.25
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 4.2 = .... [TRUNCATED] 
+
+> formula41=as.formula("~bs(fu, k=1, B=c(0,8)) + Iagegrp3045+Iagegrp4555+Iagegrp5565+Iagegrp7590" )
+
+> beta41=as.numeric(model41$coef)
+
+> my.data41=data.frame(fu=0:5)
+
+> my.data41=merge(my.data41, data.frame(agegrp=c("[30;45[", "[45;55[", "[55;65[", "[65;75[", "[75;90]")   ))
+
+> my.data41$Iagegrp3045 <- ifelse(my.data41$agegrp=="[30;45[",1,0) 
+
+> my.data41$Iagegrp4555 <- ifelse(my.data41$agegrp=="[45;55[",1,0) 
+
+> my.data41$Iagegrp5565 <- ifelse(my.data41$agegrp=="[55;65[",1,0) 
+
+> my.data41$Iagegrp6575 <- ifelse(my.data41$agegrp=="[65;75[",1,0) 
+
+> my.data41$Iagegrp7590 <- ifelse(my.data41$agegrp=="[75;90]",1,0) 
+
+> my.mat41=model.matrix(formula41, data=my.data41)
+
+> my.data41$hazard=exp(my.mat41%*%beta41)
+
+> head(my.data41)
+  fu  agegrp Iagegrp3045 Iagegrp4555 Iagegrp5565 Iagegrp6575 Iagegrp7590    hazard
+1  0 [30;45[           1           0           0           0           0 1.5116936
+2  1 [30;45[           1           0           0           0           0 0.5944626
+3  2 [30;45[           1           0           0           0           0 0.4628887
+4  3 [30;45[           1           0           0           0           0 0.3119101
+5  4 [30;45[           1           0           0           0           0 0.1853970
+6  5 [30;45[           1           0           0           0           0 0.0990868
+
+> my.data41[my.data41$agegrp=="[30;45[",]
+  fu  agegrp Iagegrp3045 Iagegrp4555 Iagegrp5565 Iagegrp6575 Iagegrp7590    hazard
+1  0 [30;45[           1           0           0           0           0 1.5116936
+2  1 [30;45[           1           0           0           0           0 0.5944626
+3  2 [30;45[           1           0           0           0           0 0.4628887
+4  3 [30;45[           1           0           0           0           0 0.3119101
+5  4 [30;45[           1           0           0           0           0 0.1853970
+6  5 [30;45[           1           0           0           0           0 0.0990868
+
+> my.data41[my.data41$agegrp=="[65;75[",]
+   fu  agegrp Iagegrp3045 Iagegrp4555 Iagegrp5565 Iagegrp6575 Iagegrp7590    hazard
+19  0 [65;75[           0           0           0           1           0 2.0793764
+20  1 [65;75[           0           0           0           1           0 0.8176997
+21  2 [65;75[           0           0           0           1           0 0.6367162
+22  3 [65;75[           0           0           0           1           0 0.4290410
+23  4 [65;75[           0           0           0           1           0 0.2550187
+24  5 [65;75[           0           0           0           1           0 0.1362966
+
+> predict(model41, time.pts=c(0.0000001, 1:5), 
++                data.val = data.frame(Iagegrp3045=1,Iagegrp4555=0,Iagegrp5565=0,Iagegrp7585=0,Iagegrp .... [TRUNCATED] 
+Results:
+  time.pts Iagegrp3045 Iagegrp4555 Iagegrp5565 Iagegrp7590    hazard hazard.inf hazard.sup      surv   surv.inf  surv.sup
+1    1e-07           1           0           0           0 1.5116933 1.01146523  2.2593130 0.9999998 0.99999977 0.9999999
+2    1e+00           1           0           0           0 0.5944626 0.40882335  0.8643971 0.4460485 0.31157562 0.5718195
+3    2e+00           1           0           0           0 0.4628887 0.31198631  0.6867800 0.2618276 0.14452223 0.3951935
+4    3e+00           1           0           0           0 0.3119101 0.20464017  0.4754097 0.1778455 0.08244115 0.3027465
+5    4e+00           1           0           0           0 0.1853970 0.11151813  0.3082194 0.1391242 0.05761919 0.2558517
+6    5e+00           1           0           0           0 0.0990868 0.05358886  0.1832133 0.1210849 0.04690862 0.2329596
+... (dimensions: 6 rows and 11 columns)
+
+> predict(model41, time.pts=c(0.0000001, 1:5), 
++                data.val = data.frame(Iagegrp3045=0,Iagegrp4555=0,Iagegrp5565=0,Iagegrp7585=0,Iagegrp .... [TRUNCATED] 
+Results:
+  time.pts Iagegrp3045 Iagegrp4555 Iagegrp5565 Iagegrp7590    hazard hazard.inf hazard.sup       surv   surv.inf   surv.sup
+1    1e-07           0           0           0           0 2.0793759 1.70245009  2.5397537 0.99999979 0.99999975 0.99999983
+2    1e+00           0           0           0           0 0.8176997 0.70422703  0.9494563 0.32939377 0.28207557 0.37740923
+3    2e+00           0           0           0           0 0.6367162 0.52579695  0.7710344 0.15829385 0.12308472 0.19751614
+4    3e+00           0           0           0           0 0.4290410 0.33572578  0.5482932 0.09298511 0.06662523 0.12455773
+5    4e+00           0           0           0           0 0.2550187 0.17458907  0.3725006 0.06633257 0.04473817 0.09356044
+6    5e+00           0           0           0           0 0.1362966 0.08143975  0.2281045 0.05479800 0.03533285 0.08022909
+... (dimensions: 6 rows and 11 columns)
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 4.3 = .... [TRUNCATED] 
+
+> ref$hz.ref=ref$hazard
+
+> my.data41=merge(my.data41, ref[,c("fu","hz.ref")])
+
+> my.data41$HR=my.data41$hazard/my.data41$hz.ref
+
+> my.data41=my.data41[order(my.data41$agegrp, my.data41$fu), c("fu","agegrp","hazard","hz.ref","HR")]
+
+> my.data41
+   fu  agegrp    hazard    hz.ref        HR
+1   0 [30;45[ 1.5116936 2.0793764 0.7269938
+6   1 [30;45[ 0.5944626 0.8176997 0.7269938
+11  2 [30;45[ 0.4628887 0.6367162 0.7269938
+16  3 [30;45[ 0.3119101 0.4290410 0.7269938
+21  4 [30;45[ 0.1853970 0.2550187 0.7269938
+26  5 [30;45[ 0.0990868 0.1362966 0.7269938
+2   0 [45;55[ 1.8236197 2.0793764 0.8770032
+7   1 [45;55[ 0.7171252 0.8176997 0.8770032
+12  2 [45;55[ 0.5584021 0.6367162 0.8770032
+17  3 [45;55[ 0.3762703 0.4290410 0.8770032
+22  4 [45;55[ 0.2236522 0.2550187 0.8770032
+27  5 [45;55[ 0.1195326 0.1362966 0.8770032
+3   0 [55;65[ 1.7292974 2.0793764 0.8316423
+8   1 [55;65[ 0.6800337 0.8176997 0.8316423
+13  2 [55;65[ 0.5295201 0.6367162 0.8316423
+18  3 [55;65[ 0.3568087 0.4290410 0.8316423
+23  4 [55;65[ 0.2120843 0.2550187 0.8316423
+28  5 [55;65[ 0.1133501 0.1362966 0.8316423
+4   0 [65;75[ 2.0793764 2.0793764 1.0000000
+9   1 [65;75[ 0.8176997 0.8176997 1.0000000
+14  2 [65;75[ 0.6367162 0.6367162 1.0000000
+19  3 [65;75[ 0.4290410 0.4290410 1.0000000
+24  4 [65;75[ 0.2550187 0.2550187 1.0000000
+29  5 [65;75[ 0.1362966 0.1362966 1.0000000
+5   0 [75;90] 2.7268413 2.0793764 1.3113745
+10  1 [75;90] 1.0723106 0.8176997 1.3113745
+15  2 [75;90] 0.8349734 0.6367162 1.3113745
+20  3 [75;90] 0.5626334 0.4290410 1.3113745
+25  4 [75;90] 0.3344250 0.2550187 1.3113745
+30  5 [75;90] 0.1787359 0.1362966 1.3113745
+
+> my.data41[my.data41$agegrp=="[30;45[",]
+   fu  agegrp    hazard    hz.ref        HR
+1   0 [30;45[ 1.5116936 2.0793764 0.7269938
+6   1 [30;45[ 0.5944626 0.8176997 0.7269938
+11  2 [30;45[ 0.4628887 0.6367162 0.7269938
+16  3 [30;45[ 0.3119101 0.4290410 0.7269938
+21  4 [30;45[ 0.1853970 0.2550187 0.7269938
+26  5 [30;45[ 0.0990868 0.1362966 0.7269938
+
+> exp(model41$coef)
+  Intercept       BS3.1       BS3.2       BS3.3       BS3.4 Iagegrp3045 Iagegrp4555 Iagegrp5565 Iagegrp7590 
+2.079376384 0.429000428 0.337817519 0.046377496 0.006405097 0.726993754 0.877003190 0.831642324 1.311374547 
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 4.4 = .... [TRUNCATED] 
+
+> my.data41$end.interval=  as.numeric(substring(my.data41$agegrp,5,6))
+
+> plot(0,0, type="n", xlim=c(30,90), ylim=c(0.5,2),xlab="Age at diagnosis", ylab="HR (ref=[65;75[) ")
+
+> segments(my.data41$begin.interval, my.data41$HR, my.data41$end.interval, my.data41$HR, lwd=3,col=3)
+
+> title("Excess Hazard Ratio for each age group")
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 4.5 = .... [TRUNCATED] 
+
+> temp$agecr2=temp$agecr^2
+
+> temp$agecr3=temp$agecr^3
+
+> posk=0
+
+> temp$agecr3plus=(temp$agecr-posk)^3*(temp$agecr>posk)
+
+> model45=mexhaz(Surv(time=fu,event=dead)~ agecr+ agecr2 +agecr3+ agecr3plus, 
++                data=temp, base="exp.bs", knots=c(1), bound=c(0,8), ex .... [TRUNCATED] 
+ Eval    LogLik Time
+    0 -1417.509    0
+Param
+[1] -1 -1 -1 -1 -1  0  0  0  0
+
+iteration = 0
+Step:
+[1] 0 0 0 0 0 0 0 0 0
+Parameter:
+[1] -1 -1 -1 -1 -1  0  0  0  0
+Function Value
+[1] 1417.509
+Gradient:
+[1] -541.762123 -280.319658  -66.130256  -10.816307    2.274532  130.903209 -734.506764  941.325709 -233.583913
+
+ Eval    LogLik Time
+  100 -808.1069 0.45
+Param
+[1]  0.1642 -0.3528 -0.9066 -1.0462 -1.0551  0.0185  0.2530  0.0878 -0.1694
+
+ Eval    LogLik Time
+  200 -758.7109 0.83
+Param
+[1]  0.3763 -0.0954 -1.9005 -2.2108 -1.8933  0.1835  0.1039  0.0253 -0.0619
+
+ Eval    LogLik Time
+  300 -749.8598 1.25
+Param
+[1]  0.6244 -0.4997 -1.8959 -2.6768 -2.4418  0.1663  0.0784  0.0192 -0.0262
+
+ Eval   LogLik Time
+  400 -742.391 1.59
+Param
+[1]  0.7188 -0.8756 -0.9276 -3.5971 -3.8738  0.1820  0.1018  0.0239 -0.0440
+
+ Eval   LogLik Time
+  500 -742.088 2.06
+Param
+[1]  0.7180 -0.8457 -1.1129 -3.0049 -5.1133  0.1706  0.0846  0.0199 -0.0258
+
+iteration = 76
+Parameter:
+[1]  0.71805890 -0.84612267 -1.11103819 -3.01084070 -5.10259267  0.17072069  0.08476066  0.01992921 -0.02595035
+Function Value
+[1] 742.0879
+Gradient:
+[1]  3.672085e-05  2.637535e-05  6.958091e-06  1.397089e-06  7.129667e-07 -2.376055e-05  7.128165e-05 -1.500666e-04  1.386979e-05
+
+Gradient relatif proche de zéro.
+L'itération courante est probablement la solution.
+
+Computation of the Hessian
+
+Data
+ Name N.Obs.Tot N.Obs N.Events N.Clust
+ temp       880   880      846       1
+
+Details
+ Iter Eval   Base Nb.Leg Nb.Aghq Optim Method Code    LogLik Total.Time
+   76  566 exp.bs     20      10   nlm    ---    1 -742.0879       2.34
+
+> summary(model45)
+Call:
+mexhaz(formula = Surv(time = fu, event = dead) ~ agecr + agecr2 + 
+    agecr3 + agecr3plus, data = temp, expected = "rate", base = "exp.bs", 
+    knots = c(1), bound = c(0, 8))
+
+Coefficients:
+            Estimate    StdErr t.value   p.value    
+Intercept   0.718059  0.098106  7.3192 5.669e-13 ***
+BS3.1      -0.846123  0.173061 -4.8892 1.206e-06 ***
+BS3.2      -1.111038  0.450391 -2.4668  0.013823 *  
+BS3.3      -3.010841  1.129651 -2.6653  0.007835 ** 
+BS3.4      -5.102593  1.814145 -2.8127  0.005024 ** 
+agecr       0.170721  0.076877  2.2207  0.026629 *  
+agecr2      0.084761  0.097254  0.8715  0.383701    
+agecr3      0.019929  0.025251  0.7893  0.430178    
+agecr3plus -0.025950  0.103977 -0.2496  0.802972    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Hazard ratios (for proportional effect variables):
+              Coef     HR CI.lower CI.upper
+agecr       0.1707 1.1862   1.0200   1.3793
+agecr2      0.0848 1.0885   0.8993   1.3174
+agecr3      0.0199 1.0201   0.9708   1.0720
+agecr3plus -0.0260 0.9744   0.7945   1.1950
+
+log-likelihood: -742.0879 (for 9 degree(s) of freedom)
+
+number of observations: 880, number of events: 846
+12 observations had a follow-up time equal to 0 (replaced by 1/730.5)
+
+> model45.bs=mexhaz(Surv(time=fu,event=dead)~ bs(agediag, k=70, B=c(20,120)), data=temp, base="exp.bs", knots=c(1), bound=c(0,8), expected="rate")
+ Eval    LogLik Time
+    0 -1417.509 0.01
+Param
+[1] -1 -1 -1 -1 -1  0  0  0  0
+
+iteration = 0
+Step:
+[1] 0 0 0 0 0 0 0 0 0
+Parameter:
+[1] -1 -1 -1 -1 -1  0  0  0  0
+Function Value
+[1] 1417.509
+Gradient:
+[1] -541.762123 -280.319658  -66.130256  -10.816307    2.274532 -160.195408 -238.078525 -132.220310   -1.868671
+
+ Eval    LogLik Time
+  100 -751.0979 0.33
+Param
+[1]  0.3863 -0.8110 -1.8390 -2.7212 -2.5465 -0.1464  0.3715  1.1355  0.0845
+
+ Eval    LogLik Time
+  200 -742.9769 0.62
+Param
+[1]  0.4625 -0.9027 -0.8733 -3.7456 -4.0888  0.1021 -0.1899  1.4398  0.1825
+
+ Eval    LogLik Time
+  300 -742.3429 0.92
+Param
+[1] -0.1503 -0.8390 -1.1463 -2.9228 -5.0927  1.0422 -0.0133  2.4134  0.6404
+
+ Eval    LogLik Time
+  400 -742.1886 1.19
+Param
+[1] -0.4442 -0.8302 -1.1885 -2.7869 -5.4598  1.3454  0.3236  2.6377  0.7942
+
+ Eval    LogLik Time
+  500 -742.1349 1.47
+Param
+[1] -0.6693 -0.8461 -1.1118 -3.0155 -5.0857  1.6510  0.4796  2.9195  1.1308
+
+iteration = 64
+Parameter:
+[1] -0.5084769 -0.8461262 -1.1110044 -3.0109476 -5.1023272  1.3641820  0.5197607  2.5023417  3.4453854
+Function Value
+[1] 742.0879
+Gradient:
+[1] -4.466756e-04 -1.455192e-04 -8.104376e-05 -4.062742e-05  6.806958e-05  2.158428e-05 -2.850129e-04 -1.720062e-04  6.279299e-05
+
+Gradient relatif proche de zéro.
+L'itération courante est probablement la solution.
+
+ Eval    LogLik Time
+  600 -742.0879 1.76
+Param
+[1] -0.5085 -0.8461 -1.1109 -3.0109 -5.1023  1.3642  0.5198  2.5023  3.4454
+
+Computation of the Hessian
+
+Data
+ Name N.Obs.Tot N.Obs N.Events N.Clust
+ temp       880   880      846       1
+
+Details
+ Iter Eval   Base Nb.Leg Nb.Aghq Optim Method Code    LogLik Total.Time
+   64  649 exp.bs     20      10   nlm    ---    1 -742.0879        1.9
+
+> summary(model45.bs)
+Call:
+mexhaz(formula = Surv(time = fu, event = dead) ~ bs(agediag, 
+    k = 70, B = c(20, 120)), data = temp, expected = "rate", 
+    base = "exp.bs", knots = c(1), bound = c(0, 8))
+
+Coefficients:
+                                     Estimate   StdErr t.value   p.value    
+Intercept                            -0.50848  1.18212 -0.4301  0.667200    
+BS3.1                                -0.84613  0.17306 -4.8892 1.206e-06 ***
+BS3.2                                -1.11100  0.45039 -2.4668  0.013825 *  
+BS3.3                                -3.01095  1.12963 -2.6654  0.007831 ** 
+BS3.4                                -5.10233  1.81402 -2.8127  0.005023 ** 
+bs(agediag, k = 70, B = c(20, 120))1  1.36418  1.72105  0.7926  0.428200    
+bs(agediag, k = 70, B = c(20, 120))2  0.51976  0.81456  0.6381  0.523585    
+bs(agediag, k = 70, B = c(20, 120))3  2.50234  1.94945  1.2836  0.199617    
+bs(agediag, k = 70, B = c(20, 120))4  3.44539  7.56400  0.4555  0.648865    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Hazard ratios (for proportional effect variables):
+                                       Coef      HR CI.lower     CI.upper
+bs(agediag, k = 70, B = c(20, 120))1 1.3642  3.9125   0.1335 1.146710e+02
+bs(agediag, k = 70, B = c(20, 120))2 0.5198  1.6816   0.3399 8.318600e+00
+bs(agediag, k = 70, B = c(20, 120))3 2.5023 12.2111   0.2661 5.603162e+02
+bs(agediag, k = 70, B = c(20, 120))4 3.4454 31.3554   0.0000 8.785388e+07
+
+log-likelihood: -742.0879 (for 9 degree(s) of freedom)
+
+number of observations: 880, number of events: 846
+12 observations had a follow-up time equal to 0 (replaced by 1/730.5)
+
+> c(model45$loglik, model45.bs$loglik)
+[1] -742.0879 -742.0879
+
+> # predicted for an age like the age of idenpat=8 for example
+> predict(model45, time.pts=1:5, data.val =temp[temp$idenpat==8,] )
+Results:
+  time.pts     agecr   agecr2    agecr3 agecr3plus     hazard hazard.inf hazard.sup      surv   surv.inf  surv.sup
+1        1 -3.962081 15.69808 -62.19708          0 0.44699611 0.19548378  1.0221079 0.5439388 0.24973970 0.7654728
+2        2 -3.962081 15.69808 -62.19708          0 0.34804551 0.15085580  0.8029899 0.3645015 0.10031961 0.6421344
+3        3 -3.962081 15.69808 -62.19708          0 0.23585801 0.10127196  0.5493031 0.2723337 0.05160585 0.5650787
+4        4 -3.962081 15.69808 -62.19708          0 0.14112189 0.05815843  0.3424334 0.2260526 0.03377984 0.5206603
+5        5 -3.962081 15.69808 -62.19708          0 0.07563351 0.02936424  0.1948093 0.2033383 0.02654112 0.4970045
+... (dimensions: 5 rows and 11 columns)
+
+> predict(model45.bs, time.pts=1:5, data.val =temp[temp$idenpat==8,] )
+Results:
+  time.pts bs(agediag, k = 70, B = c(20, 120)).1 bs(agediag, k = 70, B = c(20, 120)).2 bs(agediag, k = 70, B = c(20, 120)).3
+1        1                           0.444495562                           0.055691574                           0.002236252
+2        2                           0.444495562                           0.055691574                           0.002236252
+3        3                           0.444495562                           0.055691574                           0.002236252
+4        4                           0.444495562                           0.055691574                           0.002236252
+5        5                           0.444495562                           0.055691574                           0.002236252
+  bs(agediag, k = 70, B = c(20, 120)).4     hazard hazard.inf hazard.sup      surv   surv.inf  surv.sup
+1                           0.000000000 0.44688430 0.19675924  1.0149743 0.5440227 0.25217988 0.7641343
+2                           0.000000000 0.34795815 0.15182899  0.7974424 0.3645942 0.10194988 0.6402732
+3                           0.000000000 0.23579728 0.10191216  0.5455713 0.2724231 0.05268863 0.5629711
+4                           0.000000000 0.14108541 0.05850372  0.3402364 0.2261377 0.03459028 0.5184435
+5                           0.000000000 0.07561512 0.02952507  0.1936539 0.2034203 0.02722280 0.4947415
+... (dimensions: 5 rows and 8 columns)
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 4.6 = .... [TRUNCATED] 
+
+> my.data45=data.frame(age=30:100)
+
+> my.data45$agecr=(my.data45$age-70)/10
+
+> my.data45$agecr2=my.data45$agecr^2
+
+> my.data45$agecr3=my.data45$agecr^3
+
+> my.data45$agecr3plus=(my.data45$agecr-posk)^3*(my.data45$agecr>posk)
+
+> my.mat45=as.matrix(my.data45[,c("agecr","agecr2","agecr3","agecr3plus")])
+
+> my.data45$HR=exp(my.mat45%*%beta45.HR)
+
+> lines(my.data45$age, my.data45$HR, col="blue")
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 4.7 = .... [TRUNCATED] 
+ Eval    LogLik Time
+    0 -1417.509    0
+Param
+ [1] -1 -1 -1 -1 -1  0  0  0  0  0  0  0  0
+
+iteration = 0
+Step:
+ [1] 0 0 0 0 0 0 0 0 0 0 0 0 0
+Parameter:
+ [1] -1 -1 -1 -1 -1  0  0  0  0  0  0  0  0
+Function Value
+[1] 1417.509
+Gradient:
+ [1] -541.762123 -280.319658  -66.130256  -10.816307    2.274532  130.903209 -734.506764  941.325709 -233.583913   99.569705   34.375774
+[12]    4.816531   -2.301608
+
+ Eval    LogLik Time
+  100 -818.5847 0.64
+Param
+ [1]  0.1067 -0.3961 -0.8929 -1.0206 -1.0359 -0.0251  0.2833  0.1358 -0.1234 -0.1458 -0.0082  0.0511  0.0429
+
+ Eval    LogLik Time
+  200 -771.3385 1.25
+Param
+ [1]  0.3467 -0.2246 -1.1820 -1.3723 -1.2893  0.4431  0.0813  0.0111 -0.1142 -0.2922  0.0137  0.2164  0.1740
+
+ Eval   LogLik Time
+  300 -756.476 1.65
+Param
+ [1]  0.4273 -0.4147 -1.4463 -1.6938 -1.5579  0.3466  0.1663  0.0406 -0.0781 -0.2782 -0.1586  0.2098  0.2263
+
+ Eval    LogLik Time
+  400 -744.4826 2.22
+Param
+ [1]  0.6453 -0.5433 -1.8248 -2.6482 -2.4802  0.3272  0.0076  0.0020  0.0325 -0.2377 -0.5995  0.2651  0.4144
+
+ Eval    LogLik Time
+  500 -743.1401 2.62
+Param
+ [1]  0.6829 -0.6831 -1.7267 -2.6706 -2.5608  0.3088  0.0908  0.0229 -0.0474 -0.1286 -0.5976  0.2422  0.3971
+
+ Eval    LogLik Time
+  600 -740.0549 3.12
+Param
+ [1]  0.7150 -0.7973 -1.2148 -3.3112 -3.5071  0.3005  0.0487  0.0122 -0.0042 -0.1580 -0.5859  0.3633  0.4827
+
+ Eval    LogLik Time
+  700 -739.6022 3.68
+Param
+ [1]  0.7107 -0.8463 -1.1049 -3.3974 -3.7416  0.3376  0.1100  0.0267 -0.0675 -0.1759 -0.4876  0.2419  0.3443
+
+ Eval    LogLik Time
+  800 -739.1277 4.15
+Param
+ [1]  0.7385 -0.8796 -1.0420 -3.4700 -4.0763  0.3205  0.0678  0.0169 -0.0223 -0.2291 -0.2717 -0.0667  0.0023
+
+ Eval    LogLik Time
+  900 -739.0637 4.68
+Param
+ [1]  0.7258 -0.8611 -1.0554 -3.4803 -4.3295  0.3210  0.0837  0.0208 -0.0380 -0.2110 -0.2929 -0.0249 -0.1218
+
+ Eval    LogLik Time
+ 1000 -738.6272 5.18
+Param
+ [1]  0.7256 -0.8338 -1.2867 -2.6232 -5.8236  0.3195  0.0749  0.0188 -0.0308 -0.1919 -0.5095  0.6648 -1.3033
+
+ Eval   LogLik Time
+ 1100 -738.587 5.72
+Param
+ [1]  0.7211 -0.8161 -1.3718 -2.3457 -6.3414  0.3209  0.0747  0.0188 -0.0305 -0.1977 -0.4896  0.6220 -1.3257
+
+iteration = 118
+Parameter:
+ [1]  0.72116984 -0.81635468 -1.37089800 -2.34867105 -6.33611161  0.32082678  0.07465934  0.01875392 -0.03048828 -0.19770894 -0.48967221
+[12]  0.62208373 -1.32544209
+Function Value
+[1] 738.587
+Gradient:
+ [1] -4.047251e-05 -2.751221e-05 -1.658575e-06 -1.897466e-05 -1.173451e-05 -4.524736e-05  1.909939e-05 -3.306013e-04 -3.456080e-05
+[10] -3.763034e-05 -1.716671e-05 -2.273737e-07 -3.859775e-06
+
+Gradient relatif proche de zéro.
+L'itération courante est probablement la solution.
+
+Computation of the Hessian
+
+Data
+ Name N.Obs.Tot N.Obs N.Events N.Clust
+ temp       880   880      846       1
+
+Details
+ Iter Eval   Base Nb.Leg Nb.Aghq Optim Method Code   LogLik Total.Time
+  118 1170 exp.bs     20      10   nlm    ---    1 -738.587       6.15
+
+> summary(model47)
+Call:
+mexhaz(formula = Surv(time = fu, event = dead) ~ agecr + agecr2 + 
+    agecr3 + agecr3plus + nph(agecr), data = temp, expected = "rate", 
+    base = "exp.bs", knots = c(1), bound = c(0, 8))
+
+Coefficients:
+             Estimate    StdErr t.value   p.value    
+Intercept    0.721170  0.098951  7.2881 7.074e-13 ***
+BS3.1       -0.816355  0.178151 -4.5824 5.272e-06 ***
+BS3.2       -1.370898  0.512196 -2.6765   0.00758 ** 
+BS3.3       -2.348671  1.416817 -1.6577   0.09774 .  
+BS3.4       -6.336112  2.852568 -2.2212   0.02660 *  
+agecr        0.320827  0.105633  3.0372   0.00246 ** 
+agecr2       0.074659  0.097607  0.7649   0.44454    
+agecr3       0.018754  0.025298  0.7413   0.45870    
+agecr3plus  -0.030488  0.104351 -0.2922   0.77023    
+agecr*BS3.1 -0.197709  0.151590 -1.3042   0.19250    
+agecr*BS3.2 -0.489672  0.386157 -1.2681   0.20512    
+agecr*BS3.3  0.622084  0.961494  0.6470   0.51781    
+agecr*BS3.4 -1.325442  1.465057 -0.9047   0.36587    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Hazard ratios (for proportional effect variables):
+              Coef     HR CI.lower CI.upper
+agecr       0.3208 1.3783   1.1202   1.6958
+agecr2      0.0747 1.0775   0.8897   1.3050
+agecr3      0.0188 1.0189   0.9696   1.0708
+agecr3plus -0.0305 0.9700   0.7903   1.1904
+
+log-likelihood: -738.587 (for 13 degree(s) of freedom)
+
+number of observations: 880, number of events: 846
+12 observations had a follow-up time equal to 0 (replaced by 1/730.5)
+
+> formula47=as.formula("~bs(fu, k=1, B=c(0,8)) + agecr+ agecr2 +agecr3+ agecr3plus + agecr:(bs(fu, k=1, B=c(0,8)))  " )
+
+> beta47=as.numeric(model47$coef)
+
+> my.data47=data.frame(fu=seq(0,5,by=0.1))
+
+> my.data47=merge(my.data47, data.frame(age=30:90)   )
+
+> my.data47$agecr=(my.data47$age-70)/10
+
+> my.data47$agecr2=my.data47$agecr^2
+
+> my.data47$agecr3=my.data47$agecr^3
+
+> my.data47$agecr3plus=(my.data47$agecr-posk)^3*(my.data47$agecr>posk)
+
+> # my.mat47 is the design matrix
+> #
+> my.mat47=model.matrix(formula47, data=my.data47)
+
+> my.data47$hazard=exp(my.mat47%*%beta47)
+
+> head(my.data47)
+   fu age agecr agecr2 agecr3 agecr3plus    hazard
+1 0.0  30    -4     16    -64          0 0.5667491
+2 0.1  30    -4     16    -64          0 0.5640427
+3 0.2  30    -4     16    -64          0 0.5641358
+4 0.3  30    -4     16    -64          0 0.5663616
+5 0.4  30    -4     16    -64          0 0.5700727
+6 0.5  30    -4     16    -64          0 0.5746202
+
+> # Check that the "by-hand" design matrix is correct 
+> names(model47$coef)
+ [1] "Intercept"   "BS3.1"       "BS3.2"       "BS3.3"       "BS3.4"       "agecr"       "agecr2"      "agecr3"      "agecr3plus" 
+[10] "agecr*BS3.1" "agecr*BS3.2" "agecr*BS3.3" "agecr*BS3.4"
+
+> dimnames(my.mat47)[[2]]
+ [1] "(Intercept)"                       "bs(fu, k = 1, B = c(0, 8))1"       "bs(fu, k = 1, B = c(0, 8))2"      
+ [4] "bs(fu, k = 1, B = c(0, 8))3"       "bs(fu, k = 1, B = c(0, 8))4"       "agecr"                            
+ [7] "agecr2"                            "agecr3"                            "agecr3plus"                       
+[10] "bs(fu, k = 1, B = c(0, 8))1:agecr" "bs(fu, k = 1, B = c(0, 8))2:agecr" "bs(fu, k = 1, B = c(0, 8))3:agecr"
+[13] "bs(fu, k = 1, B = c(0, 8))4:agecr"
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 4.8 = .... [TRUNCATED] 
+
+> # Fig1
+> #
+> plot(0,0, type="n", xlim=c(0,5), ylim=c(0,2.5),xlab="time since diagnosis", ylab="excess mortality hazard ")
+
+> lines( my.data47$fu[my.data47$age==30], my.data47$hazard[my.data47$age==30], col=1)
+
+> lines( my.data47$fu[my.data47$age==60], my.data47$hazard[my.data47$age==60], col=2)
+
+> lines( my.data47$fu[my.data47$age==90], my.data47$hazard[my.data47$age==90], col=3)
+
+> axis(1, label=F, at=c(0.2, 0.5, 1, 5), tck=1,lty=8, lwd=0.1)
+
+> axis(2, label=F, at=seq(0,2.5, by=0.25), tck=1,lty=8, lwd=0.1)
+
+> legend(2,2, c("age=30","age=60","age=90"), text.col=1:3)
+
+> title("hazard vs time for given age")
+
+> # Fig2
+> #
+> plot(0,0, type="n", xlim=c(30,90), ylim=c(0,2.5),xlab="age at diagnosis", ylab="excess mortality hazard ")
+
+> lines( my.data47$age[my.data47$fu==0.2], my.data47$hazard[my.data47$fu==0.2], col=1)
+
+> lines( my.data47$age[my.data47$fu==0.5], my.data47$hazard[my.data47$fu==0.5], col=2)
+
+> lines( my.data47$age[my.data47$fu==1], my.data47$hazard[my.data47$fu==1], col=3)
+
+> lines( my.data47$age[my.data47$fu==5], my.data47$hazard[my.data47$fu==5], col=4)
+
+> axis(1, label=F, at=c(30,60,90), tck=1,lty=8, lwd=0.1)
+
+> axis(2, label=F, at=seq(0,2.5, by=0.25), tck=1,lty=8, lwd=0.1)
+
+> legend(40,2.5, c("t=0.2","t=0.5","t=1","t=5"), text.col=1:4)
+
+> title("hazard vs age for given time")
+
+> # Fig3
+> #
+> par(mfrow=c(1,1))
+
+> z=matrix(my.data47$hazard, ncol=length(30:90))
+
+> persp(seq(0,5,by=0.1), 30:90, z, xlab="time since diagnosis", ylab="age at diagnosis", zlab="excess mortality hazard",theta=20)
+
+> title("Hazard(t,age) vs (t,age)")
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 4.9 = .... [TRUNCATED] 
+
+> head(my.data47)
+   fu age agecr agecr2 agecr3 agecr3plus    hazard        HR
+1 0.0  30    -4     16    -64          0 0.5667491 0.2755439
+2 0.1  30    -4     16    -64          0 0.5640427 0.3428212
+3 0.2  30    -4     16    -64          0 0.5641358 0.4117115
+4 0.3  30    -4     16    -64          0 0.5663616 0.4788708
+5 0.4  30    -4     16    -64          0 0.5700727 0.5412469
+6 0.5  30    -4     16    -64          0 0.5746202 0.5964528
+
+> plot(0,0, type="n", xlim=c(30,90), ylim=c(0.5,2),xlab="Age at diagnosis", ylab="HR (ref=70) ")
+
+> lines( my.data47$age[my.data47$fu==0.2], my.data47$HR[my.data47$fu==0.2], col=1)
+
+> lines( my.data47$age[my.data47$fu==0.5], my.data47$HR[my.data47$fu==0.5], col=2)
+
+> lines( my.data47$age[my.data47$fu==1], my.data47$HR[my.data47$fu==1], col=3)
+
+> lines( my.data47$age[my.data47$fu==5], my.data47$HR[my.data47$fu==5], col=4)
+
+> axis(1, label=F, at=70, tck=1,lty=8, lwd=0.1)
+
+> axis(2, label=F, at=1, tck=1,lty=8, lwd=0.1)
+
+> legend(30,2, c("t=0.2","t=0.5","t=1","t=5"), text.col=1:4)
+
+> title("Hazard Ratio vs age for given time  \n reference= 70 years old")
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 4.10  .... [TRUNCATED] 
+
+> GL <- gauss.quad(n=20,kind="legendre")
+
+> Rescale <- function(gl,a,b){gl$nodes <- gl$nodes*(b-a)/2+(a+b)/2 ; gl$weights <- gl$weights*(b-a)/2; return(gl) }
+
+> gg <- Rescale(GL,0,2.1)
+
+> gg
+$nodes
+ [1] 0.007214971 0.037829476 0.092153850 0.168927180 0.266351498 0.382143635 0.513589648 0.657608607 0.810824856 0.969647153 1.130352847
+[12] 1.289175144 1.442391393 1.586410352 1.717856365 1.833648502 1.931072820 2.007846150 2.062170524 2.092785029
+
+$weights
+ [1] 0.01849471 0.04263150 0.06580565 0.08744058 0.10702663 0.12410426 0.13827307 0.14920091 0.15663164 0.16039106 0.16039106 0.15663164
+[13] 0.14920091 0.13827307 0.12410426 0.10702663 0.08744058 0.06580565 0.04263150 0.01849471
+
+
+> my.data410=data.frame(fu=gg$nodes)
+
+> my.data410=merge(my.data410, temp[temp$idenpat==8,c("agecr","agecr2","agecr3","agecr3plus")] )
+
+> my.mat410=model.matrix(formula47, data=my.data410 )
+
+> # Compute of cumulative hazard ch as a simple weighted sum of hazard then ns=exp(-ch)
+> exp(-sum(gg$weights*exp(my.mat410%*%beta47)))
+[1] 0.3129099
+
+> # check with mexhaz
+> predict(model47, time.pts=c(2.1), data.val=temp[temp$idenpat==8,] )
+Results:
+  time.pts     agecr   agecr2    agecr3 agecr3plus    hazard hazard.inf hazard.sup      surv   surv.inf surv.sup
+1      2.1 -3.962081 15.69808 -62.19708          0 0.4191729  0.1613374   1.089058 0.3129099 0.06808792 0.605089
+... (dimensions: 1 rows and 11 columns)
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 4.11  .... [TRUNCATED] 
+[1] 0.1477571
+
+> date()
+[1] "Sat Oct 19 17:54:44 2019"
+
+> sink()

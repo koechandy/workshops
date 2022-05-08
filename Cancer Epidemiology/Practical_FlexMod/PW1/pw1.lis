@@ -1,0 +1,190 @@
+
+> date()
+[1] "Sat Oct 19 17:03:29 2019"
+
+> system("hostname", intern=T)
+[1] "LAPTOP-13353D28"
+
+> library(survival)
+
+> sessionInfo()
+R version 3.5.1 (2018-07-02)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows >= 8 x64 (build 9200)
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=French_France.1252  LC_CTYPE=French_France.1252    LC_MONETARY=French_France.1252 LC_NUMERIC=C                  
+[5] LC_TIME=French_France.1252    
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] mexhaz_1.6      survival_2.42-6
+
+loaded via a namespace (and not attached):
+ [1] MASS_7.3-50       compiler_3.5.1    Matrix_1.2-14     tools_3.5.1       yaml_2.2.0        splines_3.5.1     grid_3.5.1       
+ [8] numDeriv_2016.8-1 statmod_1.4.30    lattice_0.20-35  
+
+> #-------------------------------------------------------------------------------
+> ## 1.1 ==> load and describe
+> 
+> load("data/datacolon.RData")
+
+> summary(datacolon)
+    idenpat        diagmdy              agediag      stage          finmdy                dead       
+ Min.   :   1   Min.   :2000-01-01   Min.   :18.20   St1: 553   Min.   :2000-01-06   Min.   :0.0000  
+ 1st Qu.:1507   1st Qu.:2000-04-04   1st Qu.:64.11   St2:2367   1st Qu.:2001-06-03   1st Qu.:0.0000  
+ Median :3012   Median :2000-07-03   Median :72.09   St3:2216   Median :2004-03-17   Median :1.0000  
+ Mean   :3012   Mean   :2000-07-02   Mean   :70.59   St4: 888   Mean   :2004-07-16   Mean   :0.6391  
+ 3rd Qu.:4518   3rd Qu.:2000-09-29   3rd Qu.:78.32              3rd Qu.:2007-12-31   3rd Qu.:1.0000  
+ Max.   :6024   Max.   :2000-12-31   Max.   :96.56              Max.   :2007-12-31   Max.   :1.0000  
+
+> dim(datacolon)
+[1] 6024    6
+
+> head(datacolon)
+  idenpat    diagmdy  agediag stage     finmdy dead
+1       1 2000-06-09 21.28679   St3 2007-12-31    0
+2       2 2000-08-02 18.20397   St2 2007-12-31    0
+3       3 2000-02-08 23.93429   St3 2000-10-10    1
+4       4 2000-05-18 25.41547   St2 2007-12-31    0
+5       5 2000-05-18 21.18823   St2 2007-12-31    0
+6       6 2000-10-13 27.32923   St3 2007-12-31    0
+
+> #-------------------------------------------------------------------------------
+> # 1.2 ==> 	describe by KM the survival (work in years for the fol .... [TRUNCATED] 
+
+> summary(survfit(Surv(fu, dead) ~ 1, data = datacolon, se=T ) , times=c(0.5,1,3,5)   )
+Call: survfit(formula = Surv(fu, dead) ~ 1, data = datacolon, se = T)
+
+ time n.risk n.event survival std.err lower 95% CI upper 95% CI
+  0.5   4906    1118    0.814 0.00501        0.805        0.824
+  1.0   4428     478    0.735 0.00569        0.724        0.746
+  3.0   3272    1156    0.543 0.00642        0.531        0.556
+  5.0   2639     633    0.438 0.00639        0.426        0.451
+
+> summary(survfit(Surv(fu, dead) ~ stage, data = datacolon, se=T ) , times=c(0.5,1,3,5)   )
+Call: survfit(formula = Surv(fu, dead) ~ stage, data = datacolon, se = T)
+
+                stage=St1 
+ time n.risk n.event survival std.err lower 95% CI upper 95% CI
+  0.5    511      42    0.924  0.0113        0.902        0.946
+  1.0    503       8    0.910  0.0122        0.886        0.934
+  3.0    452      51    0.817  0.0164        0.786        0.850
+  5.0    386      66    0.698  0.0195        0.661        0.737
+
+                stage=St2 
+ time n.risk n.event survival std.err lower 95% CI upper 95% CI
+  0.5   2102     265    0.888 0.00648        0.875        0.901
+  1.0   2017      85    0.852 0.00730        0.838        0.867
+  3.0   1679     338    0.709 0.00933        0.691        0.728
+  5.0   1404     275    0.593 0.01010        0.574        0.613
+
+                stage=St3 
+ time n.risk n.event survival std.err lower 95% CI upper 95% CI
+  0.5   1863     353    0.841 0.00777        0.826        0.856
+  1.0   1634     229    0.737 0.00935        0.719        0.756
+  3.0   1067     567    0.481 0.01061        0.461        0.503
+  5.0    805     262    0.363 0.01022        0.344        0.384
+
+                stage=St4 
+ time n.risk n.event survival std.err lower 95% CI upper 95% CI
+  0.5    430     458   0.4842 0.01677       0.4525       0.5182
+  1.0    274     156   0.3086 0.01550       0.2796       0.3405
+  3.0     74     200   0.0833 0.00927       0.0670       0.1036
+  5.0     44      30   0.0495 0.00728       0.0371       0.0661
+
+
+> par(mfrow=c(1,2))
+
+> plot(survfit(Surv(fu, dead) ~ 1, data = datacolon ) )
+
+> axis(2, label=F, at=seq(0,1,by=0.2), tck=1,lty=8, lwd=0.1)
+
+> title("Observed survival")
+
+> plot(survfit(Surv(fu, dead) ~ stage, data = datacolon ),col=1:4 )
+
+> axis(2, label=F, at=seq(0,1,by=0.2), tck=1,lty=8, lwd=0.1)
+
+> title("Observed survival by stage")
+
+> #----------------------------------------------------------------------------------------------------------
+> # 1.3 ==> 	calcul of the total hazard  .... [TRUNCATED] 
+
+> # source("S:/etude40/4093_formation_ouvrage_SN_Corte/contenu_formation_ouvrage/Pratical/function/lexis.R", echo=T)
+> 
+> # see also http://staff.pubh .... [TRUNCATED] 
+
+> data4=datacolon[datacolon$stage=="St4",]
+
+> # hazard over the whole period
+> c(sum(data4$dead), sum(data4$fu), hazard=sum(data4$dead)/sum(data4$fu))
+                             hazard 
+854.0000000 964.3422313   0.8855777 
+
+> datasplit=lexis(entry=0, exit = fu, fail = dead, breaks =c(0, 0.25, 0.5, 1:8), data = data4, include=list(idenpat))
+
+> head(datasplit)
+  Expand Entry     Exit Fail      .time idenpat
+1      1  0.00 0.250000    0   [0,0.25]       8
+2      1  0.25 0.500000    0 (0.25,0.5]       8
+3      1  0.50 1.000000    0    (0.5,1]       8
+4      1  1.00 1.015743    1      (1,2]       8
+5      2  0.00 0.250000    0   [0,0.25]       9
+6      2  0.25 0.500000    0 (0.25,0.5]       9
+
+> datasplit[datasplit$idenpat==8,]
+  Expand Entry     Exit Fail      .time idenpat
+1      1  0.00 0.250000    0   [0,0.25]       8
+2      1  0.25 0.500000    0 (0.25,0.5]       8
+3      1  0.50 1.000000    0    (0.5,1]       8
+4      1  1.00 1.015743    1      (1,2]       8
+
+> data4[data4$idenpat==8,]
+  idenpat    diagmdy  agediag stage     finmdy dead       fu
+8       8 2000-01-01 30.37919   St4 2001-01-06    1 1.015743
+
+> # py=persons-years
+> datasplit$py=datasplit$Exit - datasplit$Entry
+
+> #note the hazard over the whole period
+> c(sum(datasplit$Fail), sum(datasplit$py), sum(datasplit$Fail)/sum(datasplit$py))
+[1] 854.0000000 964.3422313   0.8855777
+
+> x=aggregate(datasplit[,c("Fail","py")],by=list(begin.interval=datasplit$Entry),sum)
+
+> x$begin.interval=as.numeric(as.character(x$begin.interval))
+
+> x$end.interval=c(0.25, 0.5, 1:8)
+
+> x$hazard=x$Fail/x$py
+
+> x
+   begin.interval Fail        py end.interval    hazard
+1            0.00  304 177.52361         0.25 1.7124482
+2            0.25  154 124.99179         0.50 1.2320810
+3            0.50  156 171.95825         1.00 0.9071970
+4            1.00  148 192.48871         2.00 0.7688763
+5            2.00   52  94.42437         3.00 0.5507053
+6            3.00   23  61.69336         4.00 0.3728116
+7            4.00    7  47.78645         5.00 0.1464850
+8            5.00    6  39.75086         6.00 0.1509401
+9            6.00    4  35.99589         7.00 0.1111238
+10           7.00    0  17.72895         8.00 0.0000000
+
+> par(mfrow=c(1,1)) 
+
+> plot(0,0, type="n", xlim=c(0,8), ylim=c(0,2),xlab="Time since diagnosis", ylab="hazard = number of death for 1 person-year")
+
+> segments(x$begin.interval, x$hazard, x$end.interval, x$hazard, lwd=3,col=3)
+
+> title( "\nDynamics of the hazard, stage=St4", cex=0.6)
+
+> date()
+[1] "Sat Oct 19 17:03:31 2019"
+
+> sink()

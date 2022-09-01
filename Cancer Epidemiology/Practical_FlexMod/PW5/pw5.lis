@@ -1,0 +1,614 @@
+
+> date()
+[1] "Sat Oct 19 18:02:29 2019"
+
+> rm(list=ls())
+
+> library(mexhaz)
+
+> sessionInfo()
+R version 3.5.1 (2018-07-02)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows >= 8 x64 (build 9200)
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=French_France.1252  LC_CTYPE=French_France.1252    LC_MONETARY=French_France.1252 LC_NUMERIC=C                  
+[5] LC_TIME=French_France.1252    
+
+attached base packages:
+[1] splines   stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] statmod_1.4.30  mexhaz_1.6      survival_2.42-6
+
+loaded via a namespace (and not attached):
+[1] MASS_7.3-50       compiler_3.5.1    Matrix_1.2-14     tools_3.5.1       yaml_2.2.0        grid_3.5.1        numDeriv_2016.8-1
+[8] lattice_0.20-35  
+
+> #-------------------------------------------------------------------------------
+> ## 5.0 ==> load data datacolon.v2
+> 
+> load("data/datacolon.v2.RD ..." ... [TRUNCATED] 
+
+> data5=datacolon.v2
+
+> end.time=max(data5$fu) # last day of follow-up
+
+> #		        ==========================================
+> #   		   |	     model 1: log(h.e) = beta0      |
+> # 		        ============================= .... [TRUNCATED] 
+
+> #-------------------------------------------------------------------------------
+> ## 5.2 ==> Maximize the log-likelihood function for model 1 then  .... [TRUNCATED] 
+
+> 	# sum(delta) gives the number of deaths and sum(t) the number
+> 	# of person-days
+>   
+>   
+>   # proceed to maximization
+>   result=optim(beta.ini .... [TRUNCATED] 
+
+> # N.B : control=list(fnscale=-1) transforms the default 
+> # minimization problem into a maximization one.
+> # We could have also minimized minus th .... [TRUNCATED] 
+
+>   beta.estim
+[1] -2.225892
+
+>   # get hessian matrix of the log-likelihood
+>   Hess=result$hessian
+
+>   Hess
+          [,1]
+[1,] -1913.316
+
+>   # get covariance matrix for beta.estim (and standard error)
+>   Covariance=solve(-Hess)
+
+>   Covariance
+             [,1]
+[1,] 0.0005226528
+
+>   sqrt(Covariance)
+          [,1]
+[1,] 0.0228616
+
+>   # get the log-likelihood at beta.estim
+>   log.lik(beta.estim, data=data5)
+[1] -9577.137
+
+>   result$value
+[1] -9577.137
+
+> #-------------------------------------------------------------------------------
+> ## 5.3 ==> Check results with mexhaz package for model 1 and make .... [TRUNCATED] 
+Computation of the Hessian
+
+Data
+  Name N.Obs.Tot N.Obs N.Events N.Clust
+ data5      6024  6024     3850       1
+
+Details
+ Iter Eval   Base Nb.Leg Nb.Aghq Optim Method Code    LogLik Total.Time
+   14   35 pw.cst     20      10   nlm    ---    1 -9577.141       0.11
+
+>   summary(model.check)
+Call:
+mexhaz(formula = Surv(time = fu, event = dead) ~ 1, data = data5, 
+    expected = "rate", base = "pw.cst", verbose = 0, print.level = 0)
+
+Coefficients:
+         Estimate   StdErr t.value   p.value    
+[0,7.99] -2.22590  0.02286 -97.371 < 2.2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+log-likelihood: -9577.1411 (for 1 degree(s) of freedom)
+
+number of observations: 6024, number of events: 3850
+30 observations had a follow-up time equal to 0 (replaced by 1/730.5)
+
+>   # log-likelihood
+>   model.check$loglik
+[1] -9577.141
+
+>   # predictions
+>   surv.time=seq(0.001,end.time,length=50)
+
+>   res=predict(model.check, time.pts=surv.time, 
++                  data.val=data.frame(agediag=50)) # the value for age doesn't
+
+>   # matter since the excess hazard doesn't depend on age in model 1 
+>   
+>    
+> 
+>   ##### Plot the results
+>   
+>   par(mfrow=c(1,2)) # we want t .... [TRUNCATED] 
+
+>   # Excess hazard
+>   # plot(res$results$time.pts,res$results$hazard,type="l",
+>        # ylab="Excess hazard",xlab="Time since diagnosis (years)",
+ .... [TRUNCATED] 
+
+>   # Net survival
+>   plot(res$results$time.pts,res$results$surv,type="l", ylim=c(0,1),
++        ylab="Net survival",xlab="Time since diagnosis (year ..." ... [TRUNCATED] 
+
+> #  =======================================================================
+> # |	      model 2: log(h.e) = beta0 + beta1*time + beta2*age         |
+ .... [TRUNCATED] 
+
+> #-------------------------------------------------------------------------------
+> ## 5.4 ==> write log-likelihood function for model 2
+>   
+> # rem .... [TRUNCATED] 
+
+>   log.lik=function(beta, data){
++     
++ 		# data<-data5
++ 		# beta0<- -0.1
++ 	
++ 	t0=rep(0,length(data$fu)) # initial time is zero
++ 	t1=data$fu #  .... [TRUNCATED] 
+
+> #-------------------------------------------------------------------------------
+> ## 5.5 ==> Maximize the log-likelihood function for model 2 then  .... [TRUNCATED] 
+
+>   # proceed to maximization
+>   result=optim(beta.ini,log.lik,data=data5, hessian=TRUE, control=list(fnscale=-1))
+
+>   # get estimation of beta
+>   beta.estim=result$par
+
+>   beta.estim
+[1] -1.111141552 -4.035842242  0.005937671
+
+>   # get hessian matrix of the log-likelihood
+>   Hess=result$hessian
+
+>   Hess
+           [,1]       [,2]         [,3]
+[1,] -2037.8492 -311.11934    3554.4644
+[2,]  -311.1193  -87.06024     783.9242
+[3,]  3554.4644  783.92417 -235661.0977
+
+>   # get covariance matrix for beta.estim and standard-errors
+>   Covariance=solve(-Hess)
+
+>   Covariance
+              [,1]          [,2]         [,3]
+[1,]  1.082779e-03 -3.837314e-03 3.566717e-06
+[2,] -3.837314e-03  2.544022e-02 2.674861e-05
+[3,]  3.566717e-06  2.674861e-05 4.386157e-06
+
+>   # standard errors of the parameters
+>   sqrt(diag(Covariance))
+[1] 0.032905608 0.159499899 0.002094315
+
+>   # get the log-likelihood at beta.estim
+>   log.lik(beta.estim, data=data5)
+[1] -8937.767
+
+>   result$value
+[1] -8937.767
+
+>   # predictions of the hazard at 0.5 year (agec=20)
+>   # see technical point 
+>   my.t=0.5/end.time
+
+>   exp(beta.estim[1]+my.t*beta.estim[2]+20*beta.estim[3])
+[1] 0.2879982
+
+> #-------------------------------------------------------------------------------
+> ## 5.6 ==> Check results with mexhaz package for model 2 and make .... [TRUNCATED] 
+Computation of the Hessian
+
+Data
+  Name N.Obs.Tot N.Obs N.Events N.Clust
+ data5      6024  6024     3850       1
+
+Details
+ Iter Eval   Base Nb.Leg Nb.Aghq Optim Method Code    LogLik Total.Time
+   27  126 exp.bs     20      10   nlm    ---    1 -8937.798       0.42
+
+>   summary(model.check)
+Call:
+mexhaz(formula = Surv(time = fu, event = dead) ~ agec, data = data5, 
+    expected = "rate", base = "exp.bs", degree = 1, verbose = 0, 
+    print.level = 0)
+
+Coefficients:
+            Estimate     StdErr  t.value   p.value    
+Intercept -1.1109628  0.0328982 -33.7697 < 2.2e-16 ***
+BS1.1     -4.0359546  0.1594601 -25.3101 < 2.2e-16 ***
+agec       0.0059117  0.0020950   2.8218  0.004792 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Hazard ratios (for proportional effect variables):
+       Coef     HR CI.lower CI.upper
+[1,] 0.0059 1.0059   1.0018   1.0101
+
+log-likelihood: -8937.7983 (for 3 degree(s) of freedom)
+
+number of observations: 6024, number of events: 3850
+30 observations had a follow-up time equal to 0 (replaced by 1/730.5)
+
+>   # log-likelihood
+>   model.check$loglik
+[1] -8937.798
+
+>   # check predictions predictions of the hazard at 0.5 year (agec=20) with mexhaz
+>   predict(model.check, time.pts=c(0.5), data.val=data.frame(agec .... [TRUNCATED] 
+Results:
+  time.pts agec    hazard hazard.inf hazard.sup      surv  surv.inf  surv.sup
+1      0.5   20 0.2878981  0.2601852  0.3185628 0.8489567 0.8338858 0.8627749
+... (dimensions: 1 rows and 8 columns)
+
+>   # predictions for plots
+>   
+>   surv.time=seq(0.001,end.time,length=50)
+
+>   res50=predict(model.check, time.pts=surv.time, 
++                  data.val=data.frame(agec=50-mean(data5$agediag)) ) # age=50
+
+>   res60=predict(model.check, time.pts=surv.time, 
++                  data.val=data.frame(agec=60-mean(data5$agediag)) ) # age=60
+
+>   res70=predict(model.check, time.pts=surv.time, 
++                  data.val=data.frame(agec=70-mean(data5$agediag)) ) # age=70
+
+>   ##### Plot the results
+>   par(mfrow=c(1,2))
+
+>   # Excess hazard
+>   plot(res50$results$time.pts,res50$results$hazard,type="l",
++        ylab="Excess hazard",xlab="Time since diagnosis (years)",y .... [TRUNCATED] 
+
+>   lines(res60$results$time.pts,res60$results$hazard,col="blue")
+
+>   lines(res70$results$time.pts,res70$results$hazard,col="red")
+
+>   legend(2.5, 0.3, c("age = 50", "age = 60", "age = 70"), col = c("black", "blue", "red"),
++        text.col = c("black", "blue", "red"),lty=c(1,1,1 .... [TRUNCATED] 
+
+>   # Net survival
+>   plot(res50$results$time.pts,res50$results$surv,type="l", ylim=c(0,1),
++        ylab="Net survival",xlab="Time since diagnosis ( ..." ... [TRUNCATED] 
+
+>   lines(res60$results$time.pts,res60$results$surv,col="blue")
+
+>   lines(res70$results$time.pts,res70$results$surv,col="red")
+
+>   legend(2, 0.5, c("age = 50", "age = 60", "age = 70"), col = c("black", "blue", "red"),
++        text.col = c("black", "blue", "red"),lty=c(1,1,1))
+
+>   #!!!!!!!!!!!!!!!!
+>   
+> 
+> 
+> 
+> 
+> #  =======================================================================
+> # |    model 3: log(h.e) = beta0 .... [TRUNCATED] 
+
+>   library(statmod) # for numerical integration (Gauss-Legendre)
+
+>   # write the model as a formula object
+> 
+> 	
+>   # Technical point: the baseline of model 3 is simply a classical polynomial; however, 
+>   # in o .... [TRUNCATED] 
+
+> #-------------------------------------------------------------------------------
+> ## 5.8 ==> Write the design matrices that will be used for Gauss- .... [TRUNCATED] 
+
+>   leg1=gauss.quad(n=n.legendre,kind="legendre")
+
+> 	#-------------------------------------------------------------------
+> 	# We calculate the n.legendre design matrices that we will need to 
+> 	# ge .... [TRUNCATED] 
+
+> 	X_GL1<-list()
+
+> 	t0=rep(0,length(data5$fu)) # initial time is zero
+
+> 	t1=data5$fu # time since diagnostic
+
+> 	for(i in 1:n.legendre){
++     
++ 	X_GL1[[i]]<-X_func((t1-t0)/2*leg1$nodes[i]+(t0+t1)/2,data=data5,formula=formula1)
++ 
++ 	
++ 	}
+
+> #-------------------------------------------------------------------------------
+> ## 5.9 ==> write log-likelihood function for model 3
+> 
+> # remov .... [TRUNCATED] 
+
+>   log.lik=function(beta, data, formul, leg, X_GL){
++     
++ 	
++ 	t0=rep(0,length(data$fu)) # initial time is zero
++ 	t1=data$fu # time since diagnos .... [TRUNCATED] 
+
+> #-------------------------------------------------------------------------------
+> ## 5.10 ==> Maximize the log-likelihood function for model 3 then .... [TRUNCATED] 
+
+>   # proceed to maximization
+>   result=optim(beta.ini,log.lik,data=data5,formul=formula1,leg=leg1,X_GL=X_GL1, hessian=TRUE, control=list(fnscale=-1) .... [TRUNCATED] 
+
+>   # get estimation of beta
+>   beta.estim=result$par
+
+>   beta.estim
+[1] -0.798532258 -3.582154343  0.530880230 -6.126961899  0.006722538
+
+>   # get hessian matrix of the log-likelihood
+>   Hess=result$hessian
+
+>   Hess
+            [,1]       [,2]       [,3]      [,4]         [,5]
+[1,] -2086.45007 -486.00916 -199.45215 -59.95998    3539.4775
+[2,]  -486.00916 -155.42070  -70.30924 -18.47791     966.2286
+[3,]  -199.45215  -70.30924  -55.43374 -21.90222     619.4321
+[4,]   -59.95998  -18.47791  -21.90222 -11.76769     238.9643
+[5,]  3539.47748  966.22856  619.43207 238.96434 -240653.4790
+
+>   # get covariance matrix and standard errors for beta.estim
+>   Covariance=solve(-Hess)
+
+>   Covariance
+              [,1]          [,2]          [,3]          [,4]          [,5]
+[1,]  2.265806e-03 -1.039108e-02  1.193390e-02 -1.733651e-02  5.107111e-06
+[2,] -1.039108e-02  7.373288e-02 -1.183683e-01  1.573720e-01 -5.198307e-06
+[3,]  1.193390e-02 -1.183683e-01  2.869274e-01 -4.082982e-01  3.337677e-05
+[4,] -1.733651e-02  1.573720e-01 -4.082982e-01  6.862854e-01  7.396002e-06
+[5,]  5.107111e-06 -5.198307e-06  3.337677e-05  7.396002e-06  4.302850e-06
+
+>   sqrt(diag(Covariance))
+[1] 0.047600484 0.271537987 0.535656004 0.828423473 0.002074331
+
+>   # get the log-likelihood at beta.estim
+>   log.lik(beta.estim, data=data5, formul=formula1,leg=leg1,X_GL=X_GL1)
+[1] -8855.899
+
+>   result$value
+[1] -8855.899
+
+> #-------------------------------------------------------------------------------
+> ## 5.11 ==> Check results with mexhaz package for model 3 and mak .... [TRUNCATED] 
+Computation of the Hessian
+
+Data
+  Name N.Obs.Tot N.Obs N.Events N.Clust
+ data5      6024  6024     3850       1
+
+Details
+ Iter Eval   Base Nb.Leg Nb.Aghq Optim Method Code   LogLik Total.Time
+   59  383 exp.bs     20      10   nlm    ---    1 -8846.02       6.78
+
+>   summary(model.check)
+Call:
+mexhaz(formula = Surv(time = fu, event = dead) ~ agec, data = data5, 
+    expected = "rate", base = "exp.bs", bound = c(0, end.time), 
+    verbose = 0, print.level = 0)
+
+Coefficients:
+            Estimate     StdErr  t.value   p.value    
+Intercept -0.6188699  0.0462581 -13.3786 < 2.2e-16 ***
+BS3.1     -4.6310634  0.3011632 -15.3773 < 2.2e-16 ***
+BS3.2      1.5365562  0.6732564   2.2823 0.0225078 *  
+BS3.3     -7.4441514  1.1152854  -6.6747   2.7e-11 ***
+agec       0.0070475  0.0020836   3.3824 0.0007231 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Hazard ratios (for proportional effect variables):
+      Coef     HR CI.lower CI.upper
+[1,] 0.007 1.0071    1.003   1.0112
+
+log-likelihood: -8846.0199 (for 5 degree(s) of freedom)
+
+number of observations: 6024, number of events: 3850
+30 observations had a follow-up time equal to 0 (replaced by 1/730.5)
+
+>   # log-likelihood
+>   model.check$loglik
+[1] -8846.02
+
+>   # predictions
+>   surv.time=seq(0.001,end.time,length=50)
+
+>   res50=predict(model.check, time.pts=surv.time, 
++                  data.val=data.frame(agec=50-mean(data5$agediag)) ) # age=50
+
+>   res60=predict(model.check, time.pts=surv.time, 
++                  data.val=data.frame(agec=60-mean(data5$agediag)) ) # age=60
+
+>   res70=predict(model.check, time.pts=surv.time, 
++                  data.val=data.frame(agec=70-mean(data5$agediag)) ) # age=70
+
+>   ##### Plot the results
+>   par(mfrow=c(1,2))
+
+>    # Excess hazard
+>   plot(res50$results$time.pts,res50$results$hazard,type="l",
++        ylab="Excess hazard",xlab="Time since diagnosis (years)", .... [TRUNCATED] 
+
+>   lines(res60$results$time.pts,res60$results$hazard,col="blue")
+
+>   lines(res70$results$time.pts,res70$results$hazard,col="red")
+
+>   legend(2.5, 0.3, c("age = 50", "age = 60", "age = 70"), col = c("black", "blue", "red"),
++        text.col = c("black", "blue", "red"),lty=c(1,1,1 .... [TRUNCATED] 
+
+>   # Net survival
+>   plot(res50$results$time.pts,res50$results$surv,type="l", ylim=c(0,1),
++        ylab="Net survival",xlab="Time since diagnosis ( ..." ... [TRUNCATED] 
+
+>   lines(res60$results$time.pts,res60$results$surv,col="blue")
+
+>   lines(res70$results$time.pts,res70$results$surv,col="red")
+
+>   legend(2, 0.5, c("age = 50", "age = 60", "age = 70"), col = c("black", "blue", "red"),
++        text.col = c("black", "blue", "red"),lty=c(1,1,1))
+
+> #  =======================================================================
+> # |	  model 4: log(h.e) = beta0 + Bspline(time,degree=3) +              .... [TRUNCATED] 
+
+> #-------------------------------------------------------------------------------
+> ## 5.13 ==> Calculate the new 10 design matrices for Gauss Legend .... [TRUNCATED] 
+
+> 	t0=rep(0,length(data5$fu)) # initial time is zero
+
+> 	t1=data5$fu # time since diagnostic
+
+> 	for(i in 1:n.legendre){
++     
++ 	X_GL2[[i]]<-X_func((t1-t0)/2*leg1$nodes[i]+(t0+t1)/2,data=data5,formula=formula2)
++ 
++ 	
++ 	}
+
+> #-------------------------------------------------------------------------------
+> ## 5.14 ==> Maximize the log-likelihood function for model 4
+>    .... [TRUNCATED] 
+
+>   # proceed to maximization (we use BFGS method because Nelder-Mead is quite unstable here)
+>   result=optim(beta.ini,log.lik,data=data5,formul=form .... [TRUNCATED] 
+
+>   # get estimation of beta
+>   beta.estim=result$par
+
+>   beta.estim
+[1] -0.58237004 -5.34971123  3.02001084 -9.89982156  0.04922276 -0.24610343  0.23942806 -0.31159130
+
+>   # get hessian matrix of the log-likelihood
+>   Hess=result$hessian
+
+>   Hess
+            [,1]       [,2]       [,3]      [,4]         [,5]        [,6]        [,7]         [,8]
+[1,] -2045.56767 -426.62542 -174.34068 -53.21218    3418.7930   1848.7188    954.3564    416.48765
+[2,]  -426.62542 -133.33034  -62.22337 -16.33892    1848.8731    727.5893    336.8747     83.51615
+[3,]  -174.34068  -62.22337  -49.01676 -18.65707     954.4443    336.8771    250.5486    124.40999
+[4,]   -53.21218  -16.33892  -18.65707 -11.30247     416.5293     83.5162    124.4058    171.13112
+[5,]  3418.79305 1848.87308  954.44425 416.52925 -273636.5310 -65250.0238 -29213.0455 -14083.29216
+[6,]  1848.71884  727.58927  336.87714  83.51620  -65250.0238 -21877.0306  -9986.7088  -2612.16042
+[7,]   954.35636  336.87469  250.54857 124.40583  -29213.0455  -9986.7088  -7836.4925  -4094.38909
+[8,]   416.48765   83.51615  124.40999 171.13112  -14083.2922  -2612.1604  -4094.3891  -6265.24558
+
+>   # get covariance matrix for beta.estim
+>   Covariance=solve(-Hess)
+
+>   Covariance
+              [,1]          [,2]          [,3]          [,4]          [,5]          [,6]          [,7]          [,8]
+[1,]  2.050403e-03 -1.092938e-02  1.585732e-02 -0.0259180334 -3.252142e-05 -1.638315e-05  2.824743e-04 -5.071057e-04
+[2,] -1.092938e-02  9.668553e-02 -1.875779e-01  0.2909221167  7.018263e-05  1.342623e-03 -4.025047e-03  6.696732e-03
+[3,]  1.585732e-02 -1.875779e-01  5.340872e-01 -0.9150434722 -9.476073e-05 -2.489492e-03  1.148331e-02 -2.208815e-02
+[4,] -2.591803e-02  2.909221e-01 -9.150435e-01  1.7749881612  2.999669e-04  2.667454e-03 -1.864009e-02  4.286261e-02
+[5,] -3.252142e-05  7.018263e-05 -9.476073e-05  0.0002999669  1.622797e-05 -5.974526e-05  3.009537e-05 -2.615062e-05
+[6,] -1.638315e-05  1.342623e-03 -2.489492e-03  0.0026674537 -5.974526e-05  3.847344e-04 -3.894673e-04  2.686450e-04
+[7,]  2.824743e-04 -4.025047e-03  1.148331e-02 -0.0186400883  3.009537e-05 -3.894673e-04  8.502768e-04 -7.769248e-04
+[8,] -5.071057e-04  6.696732e-03 -2.208815e-02  0.0428626069 -2.615062e-05  2.686450e-04 -7.769248e-04  1.401828e-03
+
+>   sqrt(diag(Covariance))
+[1] 0.045281373 0.310942972 0.730812729 1.332286816 0.004028395 0.019614647 0.029159506 0.037440994
+
+>   # get the log-likelihood at beta.estim
+>   log.lik(beta.estim, data=data5, formul=formula2,leg=leg1,X_GL=X_GL2)
+[1] -8764.812
+
+> #-------------------------------------------------------------------------------
+> ## 5.15 ==> Check results with mexhaz package for model 4 and plo .... [TRUNCATED] 
+Computation of the Hessian
+
+Data
+  Name N.Obs.Tot N.Obs N.Events N.Clust
+ data5      6024  6024     3850       1
+
+Details
+ Iter Eval   Base Nb.Leg Nb.Aghq Optim Method Code    LogLik Total.Time
+   86  608 exp.bs     20      10   nlm    ---    1 -8764.956      15.08
+
+>   summary(model.check)
+Call:
+mexhaz(formula = Surv(time = fu, event = dead) ~ agec + nph(agec), 
+    data = data5, expected = "rate", base = "exp.bs", bound = c(0, 
+        end.time), verbose = 0, print.level = 0)
+
+Coefficients:
+             Estimate     StdErr  t.value   p.value    
+Intercept  -0.5825380  0.0452772 -12.8660 < 2.2e-16 ***
+BS3.1      -5.3485028  0.3108801 -17.2044 < 2.2e-16 ***
+BS3.2       3.0198947  0.7312381   4.1298 3.679e-05 ***
+BS3.3      -9.9021432  1.3339095  -7.4234 1.300e-13 ***
+agec        0.0491972  0.0040284  12.2127 < 2.2e-16 ***
+agec*BS3.1 -0.2459512  0.0196137 -12.5397 < 2.2e-16 ***
+agec*BS3.2  0.2393215  0.0291931   8.1979 2.964e-16 ***
+agec*BS3.3 -0.3115866  0.0375502  -8.2979 < 2.2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Hazard ratios (for proportional effect variables):
+       Coef     HR CI.lower CI.upper
+[1,] 0.0492 1.0504   1.0422   1.0588
+
+log-likelihood: -8764.956 (for 8 degree(s) of freedom)
+
+number of observations: 6024, number of events: 3850
+30 observations had a follow-up time equal to 0 (replaced by 1/730.5)
+
+>   # log-likelihood
+>   model.check$loglik
+[1] -8764.956
+
+>   # predictions
+>   surv.time=seq(0.001,end.time,length=50)
+
+>   res50=predict(model.check, time.pts=surv.time, 
++                  data.val=data.frame(agec=50-mean(data5$agediag)) ) # age=50
+
+>   res60=predict(model.check, time.pts=surv.time, 
++                  data.val=data.frame(agec=60-mean(data5$agediag)) ) # age=60
+
+>   res70=predict(model.check, time.pts=surv.time, 
++                  data.val=data.frame(agec=70-mean(data5$agediag)) ) # age=70
+
+>   ##### Plot the results
+>   par(mfrow=c(1,2))
+
+>   # Excess hazard
+>   plot(res50$results$time.pts,res50$results$hazard,type="l",
++        ylab="Excess hazard",xlab="Time since diagnosis (years)",y .... [TRUNCATED] 
+
+>   lines(res60$results$time.pts,res60$results$hazard,col="blue")
+
+>   lines(res70$results$time.pts,res70$results$hazard,col="red")
+
+>   legend(2, 0.30, c("age = 50", "age = 60", "age = 70"), col = c("black", "blue", "red"),
++        text.col = c("black", "blue", "red"),lty=c(1,1,1) .... [TRUNCATED] 
+
+>   # Net survival
+>   plot(res50$results$time.pts,res50$results$surv,type="l", ylim=c(0,1),
++        ylab="Net survival",xlab="Time since diagnosis ( ..." ... [TRUNCATED] 
+
+>   lines(res60$results$time.pts,res60$results$surv,col="blue")
+
+>   lines(res70$results$time.pts,res70$results$surv,col="red")
+
+>   legend(2, 0.5, c("age = 50", "age = 60", "age = 70"), col = c("black", "blue", "red"),
++        text.col = c("black", "blue", "red"),lty=c(1,1,1))
+
+> # 		               ===========================
+> #   		          |	   End of Practical n°5   |
+> # 		               ===========================
+> 
+> .... [TRUNCATED] 
+[1] "Sat Oct 19 18:03:20 2019"
+
+> sink()

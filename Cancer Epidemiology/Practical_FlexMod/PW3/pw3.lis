@@ -1,0 +1,355 @@
+
+> date()
+[1] "Sat Oct 19 17:15:35 2019"
+
+> system("hostname", intern=T)
+[1] "LAPTOP-13353D28"
+
+> library(survival)
+
+> library(mexhaz)
+
+> library(splines)
+
+> sessionInfo()
+R version 3.5.1 (2018-07-02)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows >= 8 x64 (build 9200)
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=French_France.1252  LC_CTYPE=French_France.1252    LC_MONETARY=French_France.1252 LC_NUMERIC=C                  
+[5] LC_TIME=French_France.1252    
+
+attached base packages:
+[1] splines   stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] statmod_1.4.30  mexhaz_1.6      survival_2.42-6
+
+loaded via a namespace (and not attached):
+[1] MASS_7.3-50       compiler_3.5.1    Matrix_1.2-14     tools_3.5.1       yaml_2.2.0        grid_3.5.1        numDeriv_2016.8-1
+[8] lattice_0.20-35  
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 3.1 = .... [TRUNCATED] 
+
+> stage="St4"
+
+> temp=datacolon.v2[datacolon.v2$stage==stage,]
+
+> model31=mexhaz(Surv(time=fu,event=dead)~ 1, data=temp, base="exp.bs", knots=c(1), bound=c(0,8), expected="rate")
+ Eval    LogLik Time
+    0 -1424.755 0.02
+Param
+[1] -1 -1 -1 -1 -1
+
+iteration = 0
+Step:
+[1] 0 0 0 0 0
+Parameter:
+[1] -1 -1 -1 -1 -1
+Function Value
+[1] 1424.755
+Gradient:
+[1] -544.798558 -281.865720  -66.293752  -10.823604    2.274532
+
+ Eval    LogLik Time
+  100 -756.6502 0.36
+Param
+[1]  0.7886 -0.9283 -0.9687 -3.8938 -4.1919
+
+iteration = 30
+Parameter:
+[1]  0.7737339 -0.8732129 -1.2032530 -3.1704933 -5.2576687
+Function Value
+[1] 756.4115
+Gradient:
+[1] 5.826450e-04 3.255991e-04 2.298769e-04 2.359442e-05 5.967962e-06
+
+Gradient relatif proche de zéro.
+L'itération courante est probablement la solution.
+
+Computation of the Hessian
+
+Data
+ Name N.Obs.Tot N.Obs N.Events N.Clust
+ temp       888   888      854       1
+
+Details
+ Iter Eval   Base Nb.Leg Nb.Aghq Optim Method Code    LogLik Total.Time
+   30  170 exp.bs     20      10   nlm    ---    1 -756.4115        0.6
+
+> pred.model31=predict(model31, time.pts=c(0.0001, seq(0.01,5, by=0.01)))
+
+> head(pred.model31$results)
+  time.pts   hazard hazard.inf hazard.sup      surv  surv.inf  surv.sup
+1    1e-04 2.167278   1.825813   2.572604 0.9997833 0.9997427 0.9998174
+2    1e-02 2.112319   1.794082   2.487005 0.9788286 0.9750194 0.9820623
+3    2e-02 2.059231   1.762754   2.405572 0.9586258 0.9514628 0.9647513
+4    3e-02 2.008459   1.732109   2.328900 0.9393275 0.9292125 0.9480378
+5    4e-02 1.959887   1.702105   2.256710 0.9208750 0.9081627 0.9318940
+6    5e-02 1.913405   1.672699   2.188750 0.9032140 0.8882181 0.9162938
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 3.2 = .... [TRUNCATED] 
+
+> begin.interval=c(0, 0.25, 0.5, 1:4)
+
+> end.interval=c(0.25, 0.5, 1:5)
+
+> plot(0,0, type="n", xlim=c(0,5), ylim=c(0,2),xlab="Time since diagnosis", ylab="Excess hazard ")
+
+> segments(begin.interval, hazard23, end.interval, hazard23, lwd=3,col=3)
+
+> lines(pred.model31$results$time.pts, pred.model31$results$hazard, col="red")
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 3.3 = .... [TRUNCATED] 
+
+> # Note the default values for intercept and degree of the bs function !
+> formula31=as.formula("~bs(fu, k=1, B=c(0,8))" )
+
+> beta31=as.numeric(model31$coef)
+
+> my.data31=data.frame(fu=seq(0,5,by=0.01))
+
+> # my.mat31 is the design matrix
+> #
+> my.mat31=model.matrix(formula31, data=my.data31)
+
+> my.data31$hazard=exp(my.mat31%*%beta31)
+
+> head(my.data31)
+    fu   hazard
+1 0.00 2.167846
+2 0.01 2.112319
+3 0.02 2.059231
+4 0.03 2.008459
+5 0.04 1.959887
+6 0.05 1.913405
+
+> lines(my.data31$fu, my.data31$hazard, col="blue", lty=8, lwd=2)
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 3.4 = .... [TRUNCATED] 
+
+> GL <- gauss.quad(n=100,kind="legendre")
+
+> ## ‘Rescale’ to modify the nodes and weight of Gauss-Legendre approximation according to the integration interval:
+> Rescale <- function(gl,a,b){gl$ .... [TRUNCATED] 
+
+> gg <- Rescale(GL,0,1.5)
+
+> gg
+$nodes
+  [1] 0.0002147049 0.0011310370 0.0027786490 0.0051562972 0.0082617036 0.0120918445 0.0166429811 0.0219106682 0.0278897593 0.0345744128
+ [11] 0.0419580974 0.0500335987 0.0587930264 0.0682278218 0.0783287663 0.0890859905 0.1004889836 0.1125266041 0.1251870901 0.1384580712
+ [21] 0.1523265807 0.1667790678 0.1818014111 0.1973789326 0.2134964118 0.2301381005 0.2472877383 0.2649285686 0.2830433548 0.3016143973
+ [31] 0.3206235505 0.3400522410 0.3598814851 0.3800919081 0.4006637627 0.4215769484 0.4428110312 0.4643452638 0.4861586052 0.5082297421
+ [41] 0.5305371090 0.5530589097 0.5757731386 0.5986576019 0.6216899396 0.6448476471 0.6681080973 0.6914485629 0.7148462382 0.7382782617
+ [51] 0.7617217383 0.7851537618 0.8085514371 0.8318919027 0.8551523529 0.8783100604 0.9013423981 0.9242268614 0.9469410903 0.9694628910
+ [61] 0.9917702579 1.0138413948 1.0356547362 1.0571889688 1.0784230516 1.0993362373 1.1199080919 1.1401185149 1.1599477590 1.1793764495
+ [71] 1.1983856027 1.2169566452 1.2350714314 1.2527122617 1.2698618995 1.2865035882 1.3026210674 1.3181985889 1.3332209322 1.3476734193
+ [81] 1.3615419288 1.3748129099 1.3874733959 1.3995110164 1.4109140095 1.4216712337 1.4317721782 1.4412069736 1.4499664013 1.4580419026
+ [91] 1.4654255872 1.4721102407 1.4780893318 1.4833570189 1.4879081555 1.4917382964 1.4948437028 1.4972213510 1.4988689630 1.4997852951
+
+$weights
+  [1] 0.0005509759 0.0012820445 0.0020129440 0.0027419709 0.0034683375 0.0041913210 0.0049102113 0.0056243049 0.0063329036 0.0070353147
+ [11] 0.0077308519 0.0084188355 0.0090985932 0.0097694609 0.0104307830 0.0110819134 0.0117222158 0.0123510646 0.0129678454 0.0135719555
+ [21] 0.0141628047 0.0147398156 0.0153024245 0.0158500816 0.0163822518 0.0168984152 0.0173980674 0.0178807202 0.0183459020 0.0187931584
+ [31] 0.0192220522 0.0196321644 0.0200230944 0.0203944601 0.0207458987 0.0210770667 0.0213876407 0.0216773172 0.0219458131 0.0221928660
+ [41] 0.0224182347 0.0226216988 0.0228030596 0.0229621399 0.0230987843 0.0232128591 0.0233042531 0.0233728768 0.0234186632 0.0234415676
+ [51] 0.0234415676 0.0234186632 0.0233728768 0.0233042531 0.0232128591 0.0230987843 0.0229621399 0.0228030596 0.0226216988 0.0224182347
+ [61] 0.0221928660 0.0219458131 0.0216773172 0.0213876407 0.0210770667 0.0207458987 0.0203944601 0.0200230944 0.0196321644 0.0192220522
+ [71] 0.0187931584 0.0183459020 0.0178807202 0.0173980674 0.0168984152 0.0163822518 0.0158500816 0.0153024245 0.0147398156 0.0141628047
+ [81] 0.0135719555 0.0129678454 0.0123510646 0.0117222158 0.0110819134 0.0104307830 0.0097694609 0.0090985932 0.0084188355 0.0077308519
+ [91] 0.0070353147 0.0063329036 0.0056243049 0.0049102113 0.0041913210 0.0034683375 0.0027419709 0.0020129440 0.0012820445 0.0005509759
+
+
+> # Compute the design matrix evaluated  at the 100 integration points (100 nodes)
+> #
+> rm(my.mat31)
+
+> my.mat31=model.matrix(formula31,data.frame(fu=gg$nodes))
+
+> # Compute of cumulative hazard ch as a simple weighted sum of hazard
+> # then NS=exp(-ch)
+> ch=sum(gg$weights*exp(my.mat31%*%beta31))
+
+> exp(-ch)
+[1] 0.2200199
+
+> # check with mexhaz
+> predict(model31, time.pts=c(1.5))
+Results:
+  time.pts    hazard hazard.inf hazard.sup      surv surv.inf  surv.sup
+1      1.5 0.7213094   0.622244  0.8361467 0.2200199  0.19477 0.2462957
+... (dimensions: 1 rows and 7 columns)
+
+> # Approximation RECTANGLE ==> NOT TO DO IN REAL LIFE !!
+> rm(my.mat31)
+
+> my.mat31=model.matrix(formula31,data.frame(fu=seq(0,1.5, by=0.0005)))
+
+> hazard=exp(my.mat31%*%beta31)
+
+> ch2=sum(0.0005*hazard)
+
+> exp(-ch2)
+[1] 0.219861
+
+> # with 20 nodes
+> GL <- gauss.quad(n=20,kind="legendre")
+
+> gg <- Rescale(GL,0,1.5)
+
+> rm(my.mat31)
+
+> my.mat31=model.matrix(formula31,data.frame(fu=gg$nodes))
+
+> exp(-sum(gg$weights*exp(my.mat31%*%beta31)))
+[1] 0.2200199
+
+> #----------------------------------------------------------------------------------------------------------------------------------------
+> ## 3.5 = .... [TRUNCATED] 
+
+> plot(pred.model31, which="hazard", conf.int=F)
+
+> lines(pred.model31$results$time.pts, pred.model31$results$hazard.inf, col="red")
+
+> lines(pred.model31$results$time.pts, pred.model31$results$hazard.sup, col="red")
+
+> #
+> plot(pred.model31, which="surv", conf.int=F)
+
+> lines(pred.model31$results$time.pts, pred.model31$results$surv.inf, col="red")
+
+> lines(pred.model31$results$time.pts, pred.model31$results$surv.sup, col="red")
+
+> #
+> 
+> #---------------------------------------------------------------------------------------------------------------
+> ## 3.6 ==> check that the  .... [TRUNCATED] 
+[1] -756.4115
+
+> temp$rate0=ifelse(temp$dead==0, 0, temp$rate)
+
+> temp$rate10=ifelse(temp$dead==0, 10*temp$rate, temp$rate)
+
+> temp$rate500=ifelse(temp$dead==0, 500*temp$rate, temp$rate)
+
+> ll0=mexhaz(Surv(time=fu,event=dead)~ 1, data=temp, base="exp.bs", knots=c(1), bound=c(0,8), expected="rate0", verbose=0)$loglik
+iteration = 0
+Step:
+[1] 0 0 0 0 0
+Parameter:
+[1] -1 -1 -1 -1 -1
+Function Value
+[1] 1424.755
+Gradient:
+[1] -544.798558 -281.865720  -66.293752  -10.823604    2.274532
+
+iteration = 30
+Parameter:
+[1]  0.7737339 -0.8732129 -1.2032530 -3.1704933 -5.2576687
+Function Value
+[1] 756.4115
+Gradient:
+[1] 5.826450e-04 3.255991e-04 2.298769e-04 2.359442e-05 5.967962e-06
+
+Gradient relatif proche de zéro.
+L'itération courante est probablement la solution.
+
+Computation of the Hessian
+
+Data
+ Name N.Obs.Tot N.Obs N.Events N.Clust
+ temp       888   888      854       1
+
+Details
+ Iter Eval   Base Nb.Leg Nb.Aghq Optim Method Code    LogLik Total.Time
+   30  170 exp.bs     20      10   nlm    ---    1 -756.4115       0.78
+
+> ll10=mexhaz(Surv(time=fu,event=dead)~ 1, data=temp, base="exp.bs", knots=c(1), bound=c(0,8), expected="rate10", verbose=0)$loglik
+iteration = 0
+Step:
+[1] 0 0 0 0 0
+Parameter:
+[1] -1 -1 -1 -1 -1
+Function Value
+[1] 1424.755
+Gradient:
+[1] -544.798558 -281.865720  -66.293752  -10.823604    2.274532
+
+iteration = 30
+Parameter:
+[1]  0.7737339 -0.8732129 -1.2032530 -3.1704933 -5.2576687
+Function Value
+[1] 756.4115
+Gradient:
+[1] 5.826450e-04 3.255991e-04 2.298769e-04 2.359442e-05 5.967962e-06
+
+Gradient relatif proche de zéro.
+L'itération courante est probablement la solution.
+
+Computation of the Hessian
+
+Data
+ Name N.Obs.Tot N.Obs N.Events N.Clust
+ temp       888   888      854       1
+
+Details
+ Iter Eval   Base Nb.Leg Nb.Aghq Optim Method Code    LogLik Total.Time
+   30  170 exp.bs     20      10   nlm    ---    1 -756.4115       0.56
+
+> ll500=mexhaz(Surv(time=fu,event=dead)~ 1, data=temp, base="exp.bs", knots=c(1), bound=c(0,8), expected="rate500")$loglik
+ Eval    LogLik Time
+    0 -1424.755 0.01
+Param
+[1] -1 -1 -1 -1 -1
+
+iteration = 0
+Step:
+[1] 0 0 0 0 0
+Parameter:
+[1] -1 -1 -1 -1 -1
+Function Value
+[1] 1424.755
+Gradient:
+[1] -544.798558 -281.865720  -66.293752  -10.823604    2.274532
+
+ Eval    LogLik Time
+  100 -756.6502 0.34
+Param
+[1]  0.7886 -0.9283 -0.9687 -3.8938 -4.1919
+
+iteration = 30
+Parameter:
+[1]  0.7737339 -0.8732129 -1.2032530 -3.1704933 -5.2576687
+Function Value
+[1] 756.4115
+Gradient:
+[1] 5.826450e-04 3.255991e-04 2.298769e-04 2.359442e-05 5.967962e-06
+
+Gradient relatif proche de zéro.
+L'itération courante est probablement la solution.
+
+Computation of the Hessian
+
+Data
+ Name N.Obs.Tot N.Obs N.Events N.Clust
+ temp       888   888      854       1
+
+Details
+ Iter Eval   Base Nb.Leg Nb.Aghq Optim Method Code    LogLik Total.Time
+   30  170 exp.bs     20      10   nlm    ---    1 -756.4115       0.59
+
+> c(model31$loglik, ll0, ll10, ll500)
+[1] -756.4115 -756.4115 -756.4115 -756.4115
+
+> date()
+[1] "Sat Oct 19 17:15:37 2019"
+
+> sink()

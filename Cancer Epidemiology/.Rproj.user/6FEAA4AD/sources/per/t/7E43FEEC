@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1571735683744.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2342990558",
+    "id" : "7E43FEEC",
+    "lastKnownWriteTime" : 1571737676,
+    "last_content_update" : 1571737676168,
+    "path" : "F:/International Cancer Institute-ICI/Epidemiology/Practical_FlexMod/PW4/pw4.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "144,0",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

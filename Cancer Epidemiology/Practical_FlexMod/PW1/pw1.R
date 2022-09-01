@@ -1,0 +1,121 @@
+#*------------------------------------------------------*
+#|                             |
+#|                                                      |
+#| source("F:/International Cancer Institute-ICI/Epidemiology/Practical_FlexMod/PW1/pw1.R", echo=T)
+#|                                                      |
+#-------------------------------------------------------*
+# 
+# 		 ===========================
+#   		|	Pratical work n?1   |
+# 		 ===========================
+
+
+setwd("F:/International Cancer Institute-ICI/Epidemiology/Practical_FlexMod/")
+
+
+sink("PW1/pw1.lis")
+
+date()
+system("hostname", intern=T)
+library(survival)
+
+sessionInfo()
+
+
+#-------------------------------------------------------------------------------
+## 1.1 ==> load and describe
+
+load("data/datacolon.RData")
+summary(datacolon)
+dim(datacolon)
+head(datacolon)
+
+
+#-------------------------------------------------------------------------------
+# 1.2 ==> 	describe by KM the survival (work in years for the follow-up)
+#		describe by KM by stage
+
+datacolon$fu=as.numeric((datacolon$finmdy-datacolon$diagmdy)/365.25)
+
+summary(survfit(Surv(fu, dead) ~ 1, data = datacolon, se=T ) , times=c(0.5,1,3,5)   )
+summary(survfit(Surv(fu, dead) ~ stage, data = datacolon, se=T ) , times=c(0.5,1,3,5)   )
+
+par(mfrow=c(1,2))
+plot(survfit(Surv(fu, dead) ~ 1, data = datacolon ) )
+axis(2, label=F, at=seq(0,1,by=0.2), tck=1,lty=8, lwd=0.1)
+title("Observed survival")
+plot(survfit(Surv(fu, dead) ~ stage, data = datacolon ),col=1:4 )
+axis(2, label=F, at=seq(0,1,by=0.2), tck=1,lty=8, lwd=0.1)
+title("Observed survival by stage")
+
+
+#----------------------------------------------------------------------------------------------------------
+# 1.3 ==> 	calcul of the total hazard and the hazard by period
+#		plot this hazard
+
+# HELP: use fonction lexis (= simpler old version of function Lexis of package Epi)
+#	lexis(entry=0, exit = fu, fail = dead, breaks =c(0, 0.25, 0.5, 1:8), data = datacolon, include=list(idenpat))
+
+source("function/lexis.R", echo=T)
+
+###Subsetting the stage four cancer patients
+data4=datacolon[datacolon$stage=="St4",]
+
+# hazard over the whole period
+c(sum(data4$dead), sum(data4$fu), hazard=sum(data4$dead)/sum(data4$fu))
+
+datasplit=lexis(entry=0, exit = fu, fail = dead, breaks =c(0, 0.25, 0.5, 1:8), data = data4, include=list(idenpat))
+head(datasplit)
+datasplit[datasplit$idenpat==8,]
+data4[data4$idenpat==8,]
+
+
+# py=persons-years
+datasplit$py=datasplit$Exit - datasplit$Entry
+
+#note the hazard over the whole period
+c(sum(datasplit$Fail), sum(datasplit$py), sum(datasplit$Fail)/sum(datasplit$py))
+
+
+x=aggregate(datasplit[,c("Fail","py")],by=list(begin.interval=datasplit$Entry),sum)
+
+
+x$begin.interval=as.numeric(as.character(x$begin.interval))
+x$end.interval=c(0.25, 0.5, 1:8)
+x$hazard=x$Fail/x$py
+x
+
+par(mfrow=c(1,1)) 
+plot(0,0, type="n", xlim=c(0,8), ylim=c(0,2),xlab="Time since diagnosis", ylab="hazard = number of death for 1 person-year")
+segments(x$begin.interval, x$hazard, x$end.interval, x$hazard, lwd=3,col=3)
+title( "\nDynamics of the hazard, stage=St4", cex=0.6)
+
+date()
+
+sink()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

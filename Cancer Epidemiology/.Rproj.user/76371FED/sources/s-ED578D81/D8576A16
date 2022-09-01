@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1572943950864.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "95736773",
+    "id" : "D8576A16",
+    "lastKnownWriteTime" : 1570649258,
+    "last_content_update" : 1570649258,
+    "path" : "F:/International Cancer Institute-ICI/Cancer Epidemiology/ForStudent/Practical_NonParamEstimation/frpop.r",
+    "project_path" : "ForStudent/Practical_NonParamEstimation/frpop.r",
+    "properties" : {
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

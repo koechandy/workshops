@@ -1,0 +1,32 @@
+SGdata <- read.csv("C:\\Users\\bomolo\\Dropbox\\My PC (UP-BM105Q2)\\Documents\\SGWorkshop\\SGWorkshop\\17snps2.csv", header = TRUE)
+SGdata2 <- SGdata[,-1]
+SGdataT <- as.data.frame(t(SGdata2))
+snp1 <- t(matrix(SGdataT$V1, nrow = 3, ncol = 2, dimnames = list(c("AA","AB","BB"), c("Case", "Control"))))
+print(snp1)
+chisq.test(snp1) # gives the Pearson (genotype) chi-square test statistic
+SNP1 < genotype(snp1)
+HWE.chisq(SNP1) # gives the HWE test statistic
+
+#This gives the list of the 17 2x3 tables and their chi-square statistics
+s <- vector("list")  
+ChisqT <- double(length = 17)
+for (i in colnames(SGdataT)) {
+s[[i]] <- t(matrix(eval(parse(text = paste0("SGdataT", "$", i))), nrow = 3, ncol = 2, dimnames = list(c("AA","AB","BB"), c("Case", "Control"))))
+}
+
+for (i in seq(1, length(SGdataT))) {
+ChisqT[[i]] <- chisq.test(s[[i]])$p.value
+}
+
+# Calculates the HWE p-values for the 17 SNPs based on the data for "controls" only
+HWE_p=matrix(data=NA,nrow=nrow(data),ncol=1)
+for (i in (1:nrow(data))){
+  data3=c(rep("A/A",data[i,5]),rep("A/B",data[i,6]),rep("B/B",data[i,7]))
+  g3=genotype(data3)
+  test=HWE.exact(g3)
+  HWE_p[i,]=unlist(test["p.value"])
+}
+
+data=data.frame(data,HWE_p)
+
+#write.table(data,file="HWEtest17snps.csv",row.names=FALSE,na="",col.names=TRUE,sep=",")
